@@ -1,0 +1,43 @@
+# Dataset and large artifacts (download separately)
+data/
+models/
+code/
+
+# Inference outputs
+output/**/*.ply
+output/**/*_submission.tar.gz
+output/**/infer_meta.json
+output/aria2*.log
+output/*.log
+output/post_*.log
+output/wait_*.log
+output/full_pipeline_chain*.out
+output/aria2_val_nohup.out
+
+# Keep small status artifacts (explicitly tracked)
+!output/status_report.md
+!output/status_report.json
+!output/val_grid/gate_decision.json
+!output/CHALLENGE_ROOT_CAUSE_ANALYSIS.md
+
+# Python / env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Secrets
+.env
+*.pem
+*_token*
+
+# IDE
+.cursor/
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

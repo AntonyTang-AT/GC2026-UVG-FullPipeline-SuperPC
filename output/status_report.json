@@ -1,0 +1,262 @@
+{
+  "generated_at": "2026-06-14T11:13:43.173629Z",
+  "primary_track": "Full Pipeline",
+  "fallback_track": "Enhancement Only",
+  "checkpoints": [
+    {
+      "name": "kitti360_com.pth",
+      "size_mb": 150.0
+    },
+    {
+      "name": "shapenet_com.pth",
+      "size_mb": 150.0
+    },
+    {
+      "name": "shapenet_superpc_w_attn_init_smoke.pth",
+      "size_mb": 49.7
+    },
+    {
+      "name": "tartanair_com.pth",
+      "size_mb": 150.0
+    }
+  ],
+  "outputs": {
+    "BlueSpeech_enhanced": {
+      "ply_count": 169,
+      "path": "/root/autodl-tmp/GC2026/output/BlueSpeech_enhanced"
+    },
+    "BlueSpeech_smoothed": {
+      "ply_count": 169,
+      "path": "/root/autodl-tmp/GC2026/output/BlueSpeech_smoothed"
+    },
+    "all_sequences_enhanced": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/all_sequences_enhanced"
+    },
+    "all_sequences_smoothed": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/all_sequences_smoothed"
+    },
+    "all_sequences_official": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/all_sequences_official"
+    },
+    "all_sequences_official_smoothed": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/all_sequences_official_smoothed"
+    },
+    "submission_candidate": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/submission_candidate"
+    },
+    "val_grid": {
+      "ply_count": 4344,
+      "path": "/root/autodl-tmp/GC2026/output/val_grid"
+    }
+  },
+  "evaluations": {
+    "baselines/val_cg_baseline_n20k.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/baselines/val_cg_as_enh",
+      "num_evaluated": 362,
+      "mean_cg_cd_l1": 85.80791184651918,
+      "mean_enh_cd_l1": 85.96053790519251,
+      "mean_improvement_cd_l1": -0.15262605867333434,
+      "created_at": "2026-06-14T06:28:39.919637Z"
+    },
+    "baselines/comparison.json": [
+      {
+        "file": "val_cg_baseline_n20k.json",
+        "label": "cg_baseline",
+        "mean_cg_cd_l1": 85.80791184651918,
+        "mean_enh_cd_l1": 85.96053790519251,
+        "improvement": -0.15262605867333434,
+        "num_evaluated": 362
+      },
+      {
+        "file": "val_official_kitti360_model_n20k.json",
+        "label": "official_kitti360_model",
+        "mean_cg_cd_l1": 85.95154601039148,
+        "mean_enh_cd_l1": 97.92390911882094,
+        "improvement": -11.972363108429462,
+        "num_evaluated": 362
+      },
+      {
+        "file": "val_smoke_random_init_n20k.json",
+        "label": "smoke_random_init",
+        "mean_cg_cd_l1": 86.05204949984893,
+        "mean_enh_cd_l1": 86.71615210685941,
+        "improvement": -0.6641026070104772,
+        "num_evaluated": 362
+      }
+    ],
+    "all_sequences_official/evaluation_val_n20k.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/all_sequences_official",
+      "num_evaluated": 362,
+      "mean_cg_cd_l1": 85.95154601039148,
+      "mean_enh_cd_l1": 97.92390911882094,
+      "mean_improvement_cd_l1": -11.972363108429462,
+      "created_at": "2026-06-14T06:04:04.343803Z"
+    },
+    "all_sequences_official/evaluation_val_summary.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/all_sequences_official",
+      "num_evaluated": 362,
+      "mean_cg_cd_l1": 93.92009429510126,
+      "mean_enh_cd_l1": 106.7429250854155,
+      "mean_improvement_cd_l1": -12.822830790314228,
+      "created_at": "2026-06-14T05:35:07.895454Z"
+    },
+    "all_sequences_enhanced/evaluation_val_summary.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/all_sequences_enhanced",
+      "num_evaluated": 362,
+      "mean_cg_cd_l1": 93.78366997271675,
+      "mean_enh_cd_l1": 91.8877103251484,
+      "mean_improvement_cd_l1": 1.895959647568347,
+      "created_at": "2026-06-13T20:31:57.362959Z"
+    },
+    "submission_candidate/evaluation_val_n20k.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/submission_candidate",
+      "num_evaluated": 362,
+      "mean_cg_cd_l1": 85.96220640319487,
+      "mean_enh_cd_l1": 75.3256582186367,
+      "mean_improvement_cd_l1": 10.636548184558166,
+      "mean_cg_accuracy_l1": 76.12411196587495,
+      "mean_enh_accuracy_l1": 86.28568592387668,
+      "mean_cg_completeness_l1": 95.80030076674994,
+      "mean_enh_completeness_l1": 64.36563043963184,
+      "mean_accuracy_l1": 86.28568592387668,
+      "mean_completeness_l1": 64.36563043963184,
+      "created_at": "2026-06-14T08:44:06.811427Z"
+    },
+    "val_grid/summary.json": [
+      {
+        "experiment": "kitti360_com_blend_cg_v0_vx1.0",
+        "mean_enh_cd_l1": 75.12320926307973,
+        "mean_cg_cd_l1": 85.8806240861587,
+        "improvement": 10.757414823078975,
+        "mean_accuracy_l1": 79.99805368244319,
+        "mean_completeness_l1": 70.24836467511088
+      },
+      {
+        "experiment": "kitti360_com_blend_cg_v0_vx2.0",
+        "mean_enh_cd_l1": 75.2166665430227,
+        "mean_cg_cd_l1": 86.0162479126651,
+        "improvement": 10.799581369642397,
+        "mean_accuracy_l1": 82.51128008089013,
+        "mean_completeness_l1": 67.92205309999582
+      },
+      {
+        "experiment": "kitti360_com_blend_cg_v0_vx3.0",
+        "mean_enh_cd_l1": 74.96852817851536,
+        "mean_cg_cd_l1": 85.93167381918892,
+        "improvement": 10.96314564067356,
+        "mean_accuracy_l1": 85.79578730546308,
+        "mean_completeness_l1": 64.14126930447573
+      },
+      {
+        "experiment": "kitti360_com_filter_cg_v0_vx0",
+        "mean_enh_cd_l1": 90.6334392905894,
+        "mean_cg_cd_l1": 86.00484036608954,
+        "improvement": -4.628598924499855,
+        "mean_accuracy_l1": 75.73888400378148,
+        "mean_completeness_l1": 105.5279941031946
+      },
+      {
+        "experiment": "shapenet_com_blend_cg_v0_vx1.0",
+        "mean_enh_cd_l1": 80.85894717432518,
+        "mean_cg_cd_l1": 85.94514404212572,
+        "improvement": 5.086196867800538,
+        "mean_accuracy_l1": 76.33739537823925,
+        "mean_completeness_l1": 85.38049882288138
+      },
+      {
+        "experiment": "shapenet_com_blend_cg_v0_vx2.0",
+        "mean_enh_cd_l1": 80.91217203298326,
+        "mean_cg_cd_l1": 86.00460231633477,
+        "improvement": 5.092430283351504,
+        "mean_accuracy_l1": 78.20211924768944,
+        "mean_completeness_l1": 83.62222508172304
+      },
+      {
+        "experiment": "shapenet_com_blend_cg_v0_vx3.0",
+        "mean_enh_cd_l1": 80.09901258563468,
+        "mean_cg_cd_l1": 85.92255766220514,
+        "improvement": 5.823545076570454,
+        "mean_accuracy_l1": 79.63035912276632,
+        "mean_completeness_l1": 80.56766580613278
+      },
+      {
+        "experiment": "shapenet_com_filter_cg_v0_vx0",
+        "mean_enh_cd_l1": 90.6334392905894,
+        "mean_cg_cd_l1": 86.00484036608954,
+        "improvement": -4.628598924499855,
+        "mean_accuracy_l1": 75.73888400378148,
+        "mean_completeness_l1": 105.5279941031946
+      },
+      {
+        "experiment": "tartanair_com_blend_cg_v0_vx1.0",
+        "mean_enh_cd_l1": 76.56121152804043,
+        "mean_cg_cd_l1": 85.99739129503787,
+        "improvement": 9.43617976699744,
+        "mean_accuracy_l1": 79.3182285372065,
+        "mean_completeness_l1": 73.80419479285814
+      },
+      {
+        "experiment": "tartanair_com_blend_cg_v0_vx2.0",
+        "mean_enh_cd_l1": 76.62770303968567,
+        "mean_cg_cd_l1": 85.94280310362083,
+        "improvement": 9.315100063935162,
+        "mean_accuracy_l1": 81.62222028700687,
+        "mean_completeness_l1": 71.63318621387798
+      },
+      {
+        "experiment": "tartanair_com_blend_cg_v0_vx3.0",
+        "mean_enh_cd_l1": 76.26043166903501,
+        "mean_cg_cd_l1": 85.99391671702348,
+        "improvement": 9.733485047988466,
+        "mean_accuracy_l1": 84.59703826904297,
+        "mean_completeness_l1": 67.92382428922706
+      },
+      {
+        "experiment": "tartanair_com_filter_cg_v0_vx0",
+        "mean_enh_cd_l1": 90.6334392905894,
+        "mean_cg_cd_l1": 86.00484036608954,
+        "improvement": -4.628598924499855,
+        "mean_accuracy_l1": 75.73888400378148,
+        "mean_completeness_l1": 105.5279941031946
+      }
+    ]
+  },
+  "rgbd": {
+    "sequences": [
+      "BlueSpeech",
+      "BlueVolley",
+      "BouncingBlue",
+      "FitFluencer",
+      "GoodVision",
+      "Mannequin",
+      "OrangeKettlebell",
+      "PinkNoir",
+      "TicTacToe",
+      "TrumanShow",
+      "VictoryHeart",
+      "VirtualLife"
+    ],
+    "total_cg_frames": 2155,
+    "mapped": 0,
+    "missing_rgb": 2155,
+    "pairs_file": "/root/autodl-tmp/GC2026/data/processed/rgbd_pairs.txt",
+    "missing_file": "/root/autodl-tmp/GC2026/data/processed/rgbd_missing.txt"
+  },
+  "next_steps": [
+    "Complete val RGBD download: check_rgbd_download.sh",
+    "Install RGBD: post_rgbd_install.sh",
+    "Val smoke: run_full_pipeline_val.sh",
+    "Unit test mm coords: python scripts/test_rgbd_to_cg_units.py",
+    "Full RGBD download + run_full_pipeline.sh after val gate"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "team": "GC2026 Team",
+  "title": "UVG-CWI-DQPC GC2026 Full Pipeline SuperPC",
+  "processing_track": "Full Pipeline",
+  "pipeline_notes": "RGBD/bag -> rgbd_to_cg.py -> SuperPC blend enhancement",
+  "post_processing": {"checkpoint": "kitti360_com.pth", "output_mode": "blend_cg", "use_vision": 0, "blend_voxel_mm": 3.0, "experiment_dir": "/root/autodl-tmp/GC2026/output/val_grid/kitti360_com_blend_cg_v0_vx3.0"}
+}

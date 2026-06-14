@@ -1,0 +1,8 @@
+torch>=2.0
+numpy
+open3d
+plyfile
+tqdm
+transformers
+accelerate
+Pillow

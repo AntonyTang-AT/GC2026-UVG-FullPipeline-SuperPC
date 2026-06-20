@@ -5,11 +5,44 @@
   "best_experiment": "kitti360_com_blend_cg_v0_vx3.0",
   "best_mean_enh_cd_l1": 74.96852817851536,
   "improvement_vs_cg_baseline": 10.992009726677153,
+  "cg_version": "v1",
+  "rgbd_pairs_mapped": 0,
+  "gate_constraints": {
+    "min_full_improve": 0.0,
+    "min_full_seq_positive": 6
+  },
   "best_config": {
     "checkpoint": "kitti360_com.pth",
     "output_mode": "blend_cg",
     "use_vision": 0,
     "blend_voxel_mm": 3.0,
     "experiment_dir": "/root/autodl-tmp/GC2026/output/val_grid/kitti360_com_blend_cg_v0_vx3.0"
+  },
+  "per_sequence_val": {
+    "TicTacToe": {
+      "num_frames": 165,
+      "mean_delta_cd_l1": 21.79940458355528,
+      "mean_cg_cd_l1": 98.1400650024414,
+      "mean_enh_cd_l1": 76.34066041888613,
+      "mean_enh_accuracy_l1": 88.79945526123046,
+      "mean_enh_completeness_l1": 63.88186585397431
+    },
+    "VictoryHeart": {
+      "num_frames": 197,
+      "mean_delta_cd_l1": 1.8870911961279544,
+      "mean_cg_cd_l1": 75.70637155910434,
+      "mean_enh_cd_l1": 73.81928036297639,
+      "mean_enh_accuracy_l1": 83.28002480443965,
+      "mean_enh_completeness_l1": 64.35853615388048
+    }
+  },
+  "per_sequence_full": {},
+  "selection_meta": {
+    "val_improvement": 10.96314564067356,
+    "full_improvement": null,
+    "val_sequences_positive": 2,
+    "val_sequences_total": 2,
+    "full_sequences_positive": 0,
+    "full_sequences_total": 0
   }
 }

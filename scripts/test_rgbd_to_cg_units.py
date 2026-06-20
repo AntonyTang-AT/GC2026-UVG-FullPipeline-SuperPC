@@ -53,6 +53,7 @@ def main() -> None:
             intr_path,
             depth_scale=1000.0,
             depth_trunc_mm=5000.0,
+            seq_root=tmp,
         )
 
     assert xyz.shape[0] > 100, f"too few points: {xyz.shape[0]}"

@@ -87,11 +87,11 @@ def main() -> None:
         "evaluations": evals,
         "rgbd": rgbd_meta,
         "next_steps": [
-            "Complete val RGBD download: check_rgbd_download.sh",
-            "Install RGBD: post_rgbd_install.sh",
-            "Val smoke: run_full_pipeline_val.sh",
-            "Unit test mm coords: python scripts/test_rgbd_to_cg_units.py",
-            "Full RGBD download + run_full_pipeline.sh after val gate",
+            "Run integrity check: bash scripts/check_integrity.sh",
+            "Finish librealsense: bash scripts/install_cwipc.sh",
+            "Generate rgbd_pairs: bash scripts/post_rgbd_install.sh",
+            "Full Pipeline val smoke: bash scripts/run_full_pipeline_val.sh",
+            "Full Pipeline all sequences: bash scripts/run_full_pipeline.sh",
         ],
     }
 

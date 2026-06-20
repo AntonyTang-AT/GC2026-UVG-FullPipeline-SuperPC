@@ -87,6 +87,17 @@ def parse_args():
         action="store_true",
         help="Skip frames whose output PLY already exists",
     )
+    p.add_argument(
+        "--per-seq-config",
+        default=os.environ.get("ENH_PER_SEQ_CONFIG", ""),
+        help="JSON with per-sequence output_mode / blend_voxel_mm",
+    )
+    p.add_argument(
+        "--adaptive-blend",
+        action="store_true",
+        default=os.environ.get("ENH_ADAPTIVE_BLEND", "0") == "1",
+        help="Adjust output_mode per frame from CG inlier ratio",
+    )
     return p.parse_args()
 
 
@@ -136,8 +147,21 @@ def prepare_inference_from_xyz(points: np.ndarray, model_args, sample_seed: int)
     return input_raw, input_model_norm, center, scale
 
 
+def sequence_from_cg_path(cg_path: str) -> str:
+    marker = "/UVG-CWI-DQPC/"
+    if marker in cg_path:
+        return cg_path.split(marker, 1)[1].split("/")[0]
+    parts = cg_path.replace("\\", "/").split("/")
+    for root_name in ("full_pipeline_cg", "full_pipeline_val_cg"):
+        if root_name in parts:
+            idx = parts.index(root_name)
+            if idx + 1 < len(parts):
+                return parts[idx + 1]
+    return os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cg_path)))))
+
+
 def output_ply_path(out_dir: str, cg_path: str) -> str:
-    seq = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(cg_path)))))
+    seq = sequence_from_cg_path(cg_path)
     fname = os.path.basename(cg_path)
     out_name = fname.replace("_CG_", "_ENH_", 1)
     return os.path.join(out_dir, seq, out_name)
@@ -155,6 +179,104 @@ def load_rgbd_pairs(path: str) -> dict[str, tuple[str, str]]:
     return mapping
 
 
+def load_per_seq_config(path: str) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+CKPT_POINT_CONFIG: dict[str, tuple[int, int]] = {
+    "shapenet_com.pth": (2048, 8192),
+    "tartanair_com.pth": (11520, 46080),
+    "kitti360_com.pth": (11520, 46080),
+}
+
+
+def resolve_ckpt_path(ckpt_name: str, fallback: str) -> str:
+    if ckpt_name and os.path.isfile(ckpt_name):
+        return ckpt_name
+    if ckpt_name:
+        candidate = os.path.join(GC2026_ROOT, "models", "superpc_pretrained", ckpt_name)
+        if os.path.isfile(candidate):
+            return candidate
+    return fallback
+
+
+def resolve_frame_enh_params(
+    cg_path: str,
+    args,
+    per_seq_cfg: dict | None,
+) -> tuple[str, float, int, str, int, int]:
+    mode = args.output_mode
+    voxel = float(args.blend_voxel_mm)
+    vision = 1 if args.use_vision_conditioning else 0
+    ckpt_name = os.path.basename(args.ckpt_path)
+    num_in = int(args.num_points)
+    num_out = int(args.target_num_points)
+
+    if per_seq_cfg:
+        seq = sequence_from_cg_path(cg_path)
+        seq_entry = per_seq_cfg.get("sequences", {}).get(seq, {})
+        default = per_seq_cfg.get("default", {})
+        mode = seq_entry.get("output_mode", default.get("output_mode", mode))
+        voxel = float(seq_entry.get("blend_voxel_mm", default.get("blend_voxel_mm", voxel)))
+        if "use_vision" in seq_entry or "use_vision" in default:
+            vision = int(seq_entry.get("use_vision", default.get("use_vision", vision)))
+        ckpt_name = seq_entry.get("checkpoint", default.get("checkpoint", ckpt_name))
+        if ckpt_name in CKPT_POINT_CONFIG:
+            num_in, num_out = CKPT_POINT_CONFIG[ckpt_name]
+
+        forbid = set(per_seq_cfg.get("forbid_modes", []))
+        if mode in forbid:
+            mode = "blend_cg"
+        if os.environ.get("PASSTHROUGH_RECON", "0") == "1":
+            mode = "pass_through_cg"
+        if per_seq_cfg.get("passthrough_all"):
+            mode = "pass_through_cg"
+
+    ckpt_path = resolve_ckpt_path(str(ckpt_name), args.ckpt_path)
+    return mode, voxel, vision, ckpt_path, num_in, num_out
+
+
+class ModelCache:
+    def __init__(self, args, device: torch.device, model_name: str):
+        self.args = args
+        self.device = device
+        self.model_name = model_name
+        self._entries: dict[tuple[str, int, int], tuple[object, object]] = {}
+
+    def get(self, ckpt_path: str, num_in: int, num_out: int):
+        key = (ckpt_path, num_in, num_out)
+        if key not in self._entries:
+            ns = make_test_namespace(self.args)
+            ns.num_points = num_in
+            ns.target_num_points = num_out
+            ns.up_rate = max(1, num_out // max(num_in, 1))
+            model_args = build_model_args_from_test_args(ns)
+            model = load_model(model_args, self.model_name, ckpt_path, self.device)
+            self._entries[key] = (model, model_args)
+            print(f"[infer] loaded ckpt={os.path.basename(ckpt_path)} in={num_in} out={num_out}")
+        return self._entries[key]
+
+
+def estimate_cg_inlier_ratio(xyz: np.ndarray, rgb: np.ndarray) -> float:
+    """Higher inlier ratio => cleaner CG => prefer model-only."""
+    try:
+        filtered_xyz, _ = filter_cg_outliers(xyz, rgb, nb_neighbors=20, std_ratio=2.0)
+        return float(filtered_xyz.shape[0]) / max(int(xyz.shape[0]), 1)
+    except Exception:
+        return 1.0
+
+
+def adaptive_mode_from_cg(xyz: np.ndarray, rgb: np.ndarray, default_mode: str, default_voxel: float) -> tuple[str, float]:
+    ratio = estimate_cg_inlier_ratio(xyz, rgb)
+    n_pts = int(xyz.shape[0])
+    if ratio < 0.92 or n_pts < 400000:
+        return "blend_cg", max(default_voxel, 2.5)
+    if ratio > 0.98 and n_pts > 550000:
+        return "model", default_voxel
+    return default_mode, default_voxel
+
+
 def main():
     args = parse_args()
     if not os.path.isfile(args.ckpt_path):
@@ -166,15 +288,18 @@ def main():
         if os.path.isfile(default_pairs):
             rgbd_pairs = load_rgbd_pairs(default_pairs)
 
+    per_seq_cfg = None
+    if args.per_seq_config and os.path.isfile(args.per_seq_config):
+        per_seq_cfg = load_per_seq_config(args.per_seq_config)
+        print(f"[infer] per-seq config: {args.per_seq_config}")
+
     with open(args.cg_list, "r", encoding="utf-8") as f:
         cg_paths = [line.strip() for line in f if line.strip() and not line.startswith("#")]
     if args.max_samples > 0:
         cg_paths = cg_paths[:args.max_samples]
 
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
-    test_ns = make_test_namespace(args)
-    model_args = build_model_args_from_test_args(test_ns)
-    model = load_model(model_args, args.model, args.ckpt_path, device)
+    model_cache = ModelCache(args, device, args.model)
 
     os.makedirs(args.out_dir, exist_ok=True)
     log_path = os.path.join(args.out_dir, "runtime.log")
@@ -196,8 +321,16 @@ def main():
         xyz, rgb = read_ply_xyz_rgb(cg_path)
         seed_i = int(args.seed) + idx
 
+        frame_mode, frame_voxel, frame_vision, frame_ckpt, frame_num_in, frame_num_out = (
+            resolve_frame_enh_params(cg_path, args, per_seq_cfg)
+        )
+        if args.adaptive_blend and frame_mode != "filter_cg":
+            frame_mode, frame_voxel = adaptive_mode_from_cg(xyz, rgb, frame_mode, frame_voxel)
+
+        model, model_args = model_cache.get(frame_ckpt, frame_num_in, frame_num_out)
+
         image_tensor, intrinsics, _ = None, None, None
-        if args.use_vision_conditioning:
+        if frame_vision or args.use_vision_conditioning:
             rgb_path = None
             if cg_path in rgbd_pairs:
                 rgb_path = rgbd_pairs[cg_path][0]
@@ -211,7 +344,9 @@ def main():
                 except Exception as exc:
                     print(f"[WARN] vision load failed for {cg_path}: {exc}")
 
-        if args.output_mode == "filter_cg":
+        if frame_mode == "pass_through_cg":
+            out_xyz, out_rgb = xyz, rgb
+        elif frame_mode == "filter_cg":
             out_xyz, out_rgb = filter_cg_outliers(xyz, rgb)
         else:
             input_raw_np, input_model_np, center_np, scale = prepare_inference_from_xyz(
@@ -228,11 +363,11 @@ def main():
             )
             generated_xyz = (generated_np * float(scale) + center_np).astype(np.float32)
 
-            if args.output_mode == "blend_cg":
+            if frame_mode == "blend_cg":
                 out_xyz, out_rgb = merge_xyz_rgb_voxel(
                     [generated_xyz, xyz],
                     [transfer_colors_knn(xyz, rgb, generated_xyz), rgb],
-                    voxel_size=float(args.blend_voxel_mm),
+                    voxel_size=float(frame_voxel),
                 )
                 if args.max_output_points > 0 and out_xyz.shape[0] > args.max_output_points:
                     rng = np.random.RandomState(seed_i)
@@ -251,7 +386,11 @@ def main():
                 "out_path": out_path,
                 "input_points": int(xyz.shape[0]),
                 "output_points": int(out_xyz.shape[0]),
-                "output_mode": args.output_mode,
+                "output_mode": frame_mode,
+                "blend_voxel_mm": frame_voxel,
+                "checkpoint": os.path.basename(frame_ckpt),
+                "num_points": frame_num_in,
+                "target_num_points": frame_num_out,
                 "seconds": round(elapsed, 3),
             }
         )

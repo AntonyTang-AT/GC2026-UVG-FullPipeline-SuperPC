@@ -18,6 +18,20 @@ cp "${GC2026_ROOT}/scripts/map_rgbd_pairs.py" "$SRC_DIR/"
 cp "${GC2026_ROOT}/scripts/download_rgbd.sh" "$SRC_DIR/"
 cp "${GC2026_ROOT}/scripts/download_full_pipeline_data.sh" "$SRC_DIR/"
 cp "${GC2026_ROOT}/scripts/rgbd_to_cg.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/uvg_frame_map.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/compare_reconstructed_cg.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/summarize_eval_by_sequence.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/build_per_sequence_enh_config.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/build_recon_enh_config.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/val_gate.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/download_cgv2.sh" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/download_cgv2_aria2.sh" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/install_cwipc.sh" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/record_cgv2_layout.py" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/run_phase2_rgbd_val.sh" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/run_stage1_rgbd_only.sh" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/overnight_nogpu.sh" "$SRC_DIR/"
+cp "${GC2026_ROOT}/scripts/print_scp_transfer_info.sh" "$SRC_DIR/"
 cp "${GC2026_ROOT}/scripts/make_submission.py" "$SRC_DIR/"
 cp "${GC2026_ROOT}/scripts/post_full_pipeline.sh" "$SRC_DIR/"
 cp "${GC2026_ROOT}/scripts/check_rgbd_download.sh" "$SRC_DIR/"
@@ -54,6 +68,8 @@ chmod +x "${SRC_DIR}/post_rgbd_install.sh" "${SRC_DIR}/download_rgbd_aria2.sh"
 chmod +x "${SRC_DIR}/wait_rgbd_and_val.sh" "${SRC_DIR}/run_full_pipeline_chain.sh"
 chmod +x "${SRC_DIR}/run_full_pipeline_after_val.sh" "${SRC_DIR}/post_submission_candidate.sh"
 chmod +x "${SRC_DIR}/run_full_pipeline_val.sh"
+chmod +x "${SRC_DIR}/download_cgv2.sh" "${SRC_DIR}/download_cgv2_aria2.sh" "${SRC_DIR}/install_cwipc.sh" "${SRC_DIR}/run_phase2_rgbd_val.sh"
+chmod +x "${SRC_DIR}/run_stage1_rgbd_only.sh" "${SRC_DIR}/overnight_nogpu.sh" "${SRC_DIR}/print_scp_transfer_info.sh"
 
 POST_JSON="{}"
 if [[ -f "$GATE_JSON" ]]; then
@@ -74,7 +90,7 @@ We participate in **both** official Processing Tracks on the same challenge.
 | Field | Value |
 |-------|-------|
 | Team | GC2026 Team |
-| Algorithm | RGBD reconstruction (Open3D / optional cwipc) + SuperPC blend enhancement |
+| Algorithm | RGBD reconstruction (cwipc + transform_matrix / Open3D fallback) + SuperPC blend |
 | Hardware | 2× NVIDIA RTX 5090 |
 | Coordinate system | Consumer-grade capture coordinates (mm) |
 

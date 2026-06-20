@@ -3,7 +3,12 @@
 set -euo pipefail
 
 GC2026_ROOT="/root/autodl-tmp/GC2026"
-export CG_LIST="${GC2026_ROOT}/data/processed/val_cg_only.txt"
+if [[ -f "${GC2026_ROOT}/data/processed/val_cg_only_cgv2.txt" ]]; then
+  export CG_LIST="${GC2026_ROOT}/data/processed/val_cg_only_cgv2.txt"
+else
+  export CG_LIST="${GC2026_ROOT}/data/processed/val_cg_only.txt"
+fi
+export UVG_CG_VERSION="${UVG_CG_VERSION:-v2}"
 export INTERMEDIATE_CG="${GC2026_ROOT}/output/full_pipeline_val_cg"
 export OUT_DIR="${GC2026_ROOT}/output/full_pipeline_val_candidate"
 export MAX_SAMPLES=0

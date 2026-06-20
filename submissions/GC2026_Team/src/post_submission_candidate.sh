@@ -23,22 +23,30 @@ echo "[post_candidate] ply_count=$n"
 python "${GC2026_ROOT}/scripts/make_submission.py" \
   --enhanced-dir "$OUT" \
   --team "GC2026 Team" \
-  --post-processing "${GC2026_ROOT}/output/val_grid/gate_decision.json"
+  --post-processing "${GC2026_ROOT}/output/val_grid/gate_decision.json" \
+  --cg-version "${UVG_CG_VERSION:-v2}"
+
+VAL_PAIRS="${GC2026_ROOT}/data/processed/val_pairs_cgv2.txt"
+ALL_PAIRS="${GC2026_ROOT}/data/processed/all_pairs_cgv2.txt"
+if [[ ! -f "$VAL_PAIRS" ]]; then
+  VAL_PAIRS="${GC2026_ROOT}/data/processed/val_pairs.txt"
+  ALL_PAIRS="${GC2026_ROOT}/data/processed/all_pairs.txt"
+fi
 
 python "${GC2026_ROOT}/scripts/evaluate_uvg.py" \
-  --pairs-file "${GC2026_ROOT}/data/processed/val_pairs.txt" \
+  --pairs-file "$VAL_PAIRS" \
   --enhanced-root "$OUT" \
   --n-samples "$N_SAMPLES" \
   --out-json "${OUT}/evaluation_val_n20k.json"
 
 python "${GC2026_ROOT}/scripts/evaluate_uvg.py" \
-  --pairs-file "${GC2026_ROOT}/data/processed/all_pairs.txt" \
+  --pairs-file "$ALL_PAIRS" \
   --enhanced-root "$OUT" \
   --n-samples "$N_SAMPLES" \
   --out-json "${OUT}/evaluation_full_n20k.json"
 
 python "${GC2026_ROOT}/scripts/evaluate_color.py" \
-  --pairs-file "${GC2026_ROOT}/data/processed/val_pairs.txt" \
+  --pairs-file "$VAL_PAIRS" \
   --enhanced-root "$OUT" \
   --out-json "${OUT}/color_evaluation_val.json"
 
@@ -53,7 +61,7 @@ python "${GC2026_ROOT}/scripts/temporal_smooth.py" \
   --window 5
 
 python "${GC2026_ROOT}/scripts/evaluate_uvg.py" \
-  --pairs-file "${GC2026_ROOT}/data/processed/val_pairs.txt" \
+  --pairs-file "$VAL_PAIRS" \
   --enhanced-root "$SMOOTH" \
   --n-samples "$N_SAMPLES" \
   --out-json "${SMOOTH}/evaluation_val_n20k.json"

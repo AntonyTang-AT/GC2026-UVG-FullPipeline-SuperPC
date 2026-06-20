@@ -1,17 +1,42 @@
 # GC2026 UVG Pipeline Scripts
 
-## Quick start
+**Agent / 新服务器**：先读 [`../AGENTS.md`](../AGENTS.md)，再跑 `bash scripts/check_integrity.sh`。
+
+## N0 v2 Full Pipeline（当前生产）
+
+| Script | Purpose |
+|--------|---------|
+| `run_full_n0_v2.sh` | 全量编排：Val362 merge → Stage1 → SuperPC → Post（`STOP_AFTER_PHASE=1\|2\|3`） |
+| `watch_full_n0_v2.sh` | 终端进度仪表盘（含 tar 静默阶段文件大小） |
+| `run_val362_n0_v2.sh` | Val362 N0 实验 + gate + 对比 |
+| `run_stage1_native_parallel.sh` | 并行 Stage1（TT/VH N0 override，`VAL_MERGE_ROOT`） |
+| `select_stage1_production_tag.py` | 生产 tag 评选（默认 `N0_cwipc_official`） |
+| `fill_missing_n0_v2.sh` | 缺帧补全（hybrid 重试 + PGDR/B2 拷贝） |
+| `retry_missing_recon.py` | 单帧 cwipc 重建重试 |
+| `eval_native_gate.py` | recon/enh vs HE native gate |
+| `compare_val362_baselines.py` | N0 vs B1 JSON 对比报告 |
+| `compare_reconstructed_cg.py` | recon vs 官方 CG → per-seq SuperPC config |
+| `build_recon_enh_config.py` | 由 compare JSON 生成 blend 配置 |
+| `post_full_pipeline.sh` | manifest + evaluate_uvg + temporal + tar |
+| `summarize_eval_by_sequence.py` | 按序列汇总 Chamfer |
+
+```bash
+bash scripts/run_full_n0_v2.sh
+bash scripts/watch_full_n0_v2.sh   # 另一终端
+```
+
+## Quick start (Enhancement Only)
 
 ```bash
 source scripts/env_setup.sh
-bash scripts/run_pipeline.sh              # BlueSpeech full sequence
-bash scripts/run_all_sequences.sh         # all 2155 frames
-bash scripts/overnight_run.sh               # download + eval + all sequences
+bash scripts/run_enhancement_only.sh
+bash scripts/post_submission_candidate.sh
 ```
 
 ## Environment
 
-- Conda env: `superpc` (Python 3.9)
+- Conda env: `superpc` (Python 3.9) — SuperPC 推理 / GPU Chamfer
+- System Python 3.12 + cwipc — Stage1 bag 回放（`source output/cwipc_env.sh`）
 - **RTX 5090** requires `torch==2.8.0+cu128`:
   ```bash
   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
@@ -19,45 +44,29 @@ bash scripts/overnight_run.sh               # download + eval + all sequences
   ```
 - Always `source scripts/env_setup.sh` (sets `LD_LIBRARY_PATH`)
 
-## Pretrained weights
-
-Official: https://drive.google.com/drive/folders/1FrQtm8LBVrbdRT4Xs87rIZpJ9nYaTqcG
-
-```bash
-bash scripts/download_pretrained.sh
-```
-
-If Google Drive is blocked, a smoke checkpoint is created automatically (pipeline test only — replace with official `.pth` for real quality).
-
-## Scripts
+## Core scripts
 
 | Script | Purpose |
 |--------|---------|
 | `prepare_uvg_pairs.py` | CG/HE pair lists |
-| `download_pretrained.sh` | gdown Model Zoo |
-| `verify_superpc_ckpt.py` | Load test |
+| `rgbd_to_cg.py` | RGBD/bag → CG（auto / cwipc / pgdr） |
 | `run_superpc_infer.py` | Batch inference + KNN colors |
-| `run_pipeline.sh` | Single sequence (default BlueSpeech) |
-| `run_all_sequences.sh` | All CG frames |
+| `run_dual_gpu_infer.sh` | 2× GPU SuperPC |
 | `evaluate_uvg.py` | Chamfer CG/ENH vs HE |
 | `temporal_smooth.py` | Sliding-window XYZ smooth |
 | `make_submission.py` | manifest.json + README |
-| `rebuild_extensions.sh` | After PyTorch upgrade |
-| `overnight_run.sh` | Full autonomous batch |
-| `extended_overnight.sh` | Eval + smooth + pack + status |
-| `rerun_with_official_ckpt.sh` | Re-infer when official `.pth` uploaded |
-| `retry_download_loop.sh` | Periodic Drive download retry |
-| `pack_submission.sh` | tar.gz pack |
+| `run_cwipc_native_plan.sh` | CWIPC val362 sweep / finalize |
+| `install_cwipc.sh` | librealsense + cwipc deb |
+| `check_integrity.sh` | Migration integrity check |
 | `generate_status_report.py` | `output/status_report.json` |
 
-`evaluate_uvg.py` uses plyfile + CUDA Chamfer3D when available (~8× faster than numpy).
+`evaluate_uvg.py` supports `--device cpu` for post while GPUs run SuperPC.
 
-## Python deps (superpc env)
+## Outputs (local, gitignored)
 
-`torch`, `torchvision`, `open3d`, `einops`, `numpy`, `scikit-learn`, `tqdm`, `h5py`, `transforms3d`, `gdown`
+- `output/submission_candidate/` — Enhancement Only ENH
+- `output/full_pipeline_n0_v2_cg/` — N0 v2 Stage1 recon
+- `output/full_pipeline_n0_v2_candidate/` — N0 v2 SuperPC ENH
+- `output/full_n0_v2_final_report.json` — N0 vs B1 对比
 
-## Outputs
-
-- `output/BlueSpeech_enhanced/` — per-sequence ENH PLY
-- `output/all_sequences_enhanced/` — full dataset run
-- `evaluation_summary.json` — mean Chamfer vs HE
+See [`../docs/N0_V2_RESULTS.md`](../docs/N0_V2_RESULTS.md) for metrics.

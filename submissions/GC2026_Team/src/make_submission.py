@@ -47,6 +47,8 @@ def main() -> None:
     )
     parser.add_argument("--pipeline-notes", default="", help="Short description of reconstruction + enhancement stages")
     parser.add_argument("--post-processing", default="", help="JSON string or path describing blend/vision params")
+    parser.add_argument("--cg-version", default=os.environ.get("UVG_CG_VERSION", "v2"))
+    parser.add_argument("--cg-source", default="", help="official | reconstructed")
     args = parser.parse_args()
 
     post_processing = {}
@@ -62,6 +64,12 @@ def main() -> None:
     os.makedirs(out_dir, exist_ok=True)
     frames = collect_ply_files(args.enhanced_dir)
 
+    if args.cg_source:
+        post_processing = dict(post_processing)
+        post_processing["cg_source"] = args.cg_source
+    post_processing = dict(post_processing)
+    post_processing["cg_version"] = args.cg_version
+
     manifest = {
         "title": args.title,
         "team": args.team,
@@ -71,6 +79,8 @@ def main() -> None:
         "fps": args.fps,
         "pipeline_notes": args.pipeline_notes,
         "post_processing": post_processing,
+        "cg_version": args.cg_version,
+        "cg_source": args.cg_source or post_processing.get("cg_source", "official"),
         "frame_index_note": "ENH filenames mirror CG with _CG_ replaced by _ENH_; same 4-digit frame index",
         "created_at": datetime.utcnow().isoformat() + "Z",
         "num_frames": len(frames),

@@ -63,10 +63,21 @@ def main() -> None:
             xyz_list.append(xyz)
             rgb_list.append(rgb)
 
-        xyz_stack = np.stack(xyz_list, axis=0)
         out_seq_dir = os.path.join(args.out_dir, seq_name)
         os.makedirs(out_seq_dir, exist_ok=True)
 
+        point_counts = {xyz.shape[0] for xyz in xyz_list}
+        if len(point_counts) != 1:
+            print(
+                f"[temporal_smooth] WARN {seq_name}: variable point counts "
+                f"{sorted(point_counts)[:8]} — copy without smoothing"
+            )
+            for src_path, xyz, rgb in zip(paths, xyz_list, rgb_list):
+                out_path = os.path.join(out_seq_dir, os.path.basename(src_path))
+                write_ply_xyz_rgb(out_path, xyz.astype(np.float32), rgb)
+            continue
+
+        xyz_stack = np.stack(xyz_list, axis=0)
         for i, src_path in enumerate(paths):
             smoothed_xyz = smooth_xyz_window(xyz_stack, i, window)
             rgb = rgb_list[i]

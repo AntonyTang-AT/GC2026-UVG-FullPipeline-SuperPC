@@ -1,0 +1,16 @@
+pip-cache
+__pycache__/
+*.pyc
+.git/objects/pack/
+output/cwipc_install_cache/
+output/speedtest_*
+output/fetch_*
+output/tictactoe_bag.zipchunk
+output/tictactoe_parts/
+output/extract_*
+output/*_nohup.out
+data/raw/UVG-CWI-DQPC/__zip/TicTacToe_UVG-CWI-DQPC_v1-0_RGBD.zip
+output/submission_candidate_submission.tar.gz
+output/all_sequences_official_submission.tar.gz
+output/all_sequences_enhanced_submission.tar.gz
+output/all_sequences_smoothed_submission.tar.gz

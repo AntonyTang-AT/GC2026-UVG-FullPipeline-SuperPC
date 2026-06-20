@@ -1,19 +1,23 @@
 {
-  "title": "UVG-CWI-DQPC GC2026 Track1 SuperPC Enhancement",
+  "title": "UVG-CWI-DQPC GC2026 Enhancement Only SuperPC (per-seq)",
   "team": "GC2026 Team",
-  "pipeline": "gc2026-superpc-v2",
+  "pipeline": "gc2026-superpc-v3",
   "processing_track": "Enhancement Only",
   "coordinate_system": "UVG-CWI-DQPC consumer-grade capture coordinates (mm, same as input CG PLY)",
   "fps": 15.0,
+  "pipeline_notes": "Official CG -> SuperPC with per_sequence_enh_config (val tune, blend_cg only)",
   "post_processing": {
     "checkpoint": "kitti360_com.pth",
     "output_mode": "blend_cg",
     "use_vision": 0,
     "blend_voxel_mm": 3.0,
-    "experiment_dir": "/root/autodl-tmp/GC2026/output/val_grid/kitti360_com_blend_cg_v0_vx3.0"
+    "experiment_dir": "/root/autodl-tmp/GC2026/output/val_grid/kitti360_com_blend_cg_v0_vx3.0",
+    "cg_version": "v2"
   },
+  "cg_version": "v2",
+  "cg_source": "official",
   "frame_index_note": "ENH filenames mirror CG with _CG_ replaced by _ENH_; same 4-digit frame index",
-  "created_at": "2026-06-14T09:03:24.091893Z",
+  "created_at": "2026-06-18T13:42:54.103436Z",
   "num_frames": 2155,
   "sequences": [
     "BlueSpeech",

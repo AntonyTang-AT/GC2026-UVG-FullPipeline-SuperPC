@@ -14,9 +14,7 @@ from tqdm import tqdm
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 GC2026_ROOT = os.path.dirname(SCRIPT_DIR)
-SUPERPC_ROOT = os.path.join(GC2026_ROOT, "code", "SuperPC")
 sys.path.insert(0, SCRIPT_DIR)
-sys.path.insert(0, SUPERPC_ROOT)
 from uvg_io import cg_to_he_path, read_ply_xyz, parse_frame_id  # noqa: E402
 
 FRAME_RE = re.compile(r"_(\d{4})\.ply$", re.IGNORECASE)
@@ -29,6 +27,9 @@ def _get_cuda_chamfer():
     if _CUDA_CD is not None:
         return _CUDA_CD
     try:
+        superpc_root = os.path.join(GC2026_ROOT, "code", "SuperPC")
+        if superpc_root not in sys.path:
+            sys.path.insert(0, superpc_root)
         import torch
         from Chamfer3D.dist_chamfer_3D import chamfer_3DDist
 
@@ -38,6 +39,28 @@ def _get_cuda_chamfer():
         return _CUDA_CD
     except Exception:
         return None
+
+
+def chamfer_symmetric_kdtree(
+    xyz_a: np.ndarray, xyz_b: np.ndarray, n_samples: int, rng: np.random.RandomState
+) -> dict:
+    """Memory-safe Chamfer for CPU (avoids n×n distance matrix; fits 2GB cgroup)."""
+    from scipy.spatial import cKDTree
+
+    a = subsample_xyz(xyz_a.astype(np.float64), n_samples, rng)
+    b = subsample_xyz(xyz_b.astype(np.float64), n_samples, rng)
+    dist_a, _ = cKDTree(b).query(a, k=1)
+    dist_b, _ = cKDTree(a).query(b, k=1)
+    cd_l1 = 0.5 * (dist_a.mean() + dist_b.mean())
+    cd_l2 = 0.5 * (np.mean(dist_a ** 2) + np.mean(dist_b ** 2))
+    return {
+        "cd_l1": float(cd_l1),
+        "cd_l2": float(cd_l2),
+        "accuracy_l1": float(dist_a.mean()),
+        "completeness_l1": float(dist_b.mean()),
+        "n_a": int(xyz_a.shape[0]),
+        "n_b": int(xyz_b.shape[0]),
+    }
 
 
 def enh_path_from_cg(cg_path: str, enhanced_root: str) -> str:
@@ -121,10 +144,13 @@ def parse_args():
 def main():
     args = parse_args()
     rng = np.random.RandomState(args.seed)
-    chamfer_fn = chamfer_symmetric_cuda if args.device == "cuda" else chamfer_symmetric_numpy
-    if args.device == "cuda" and _get_cuda_chamfer() is None:
-        print("[evaluate_uvg] CUDA Chamfer unavailable, falling back to numpy")
-        chamfer_fn = chamfer_symmetric_numpy
+    if args.device == "cuda":
+        chamfer_fn = chamfer_symmetric_cuda
+        if _get_cuda_chamfer() is None:
+            print("[evaluate_uvg] CUDA Chamfer unavailable, falling back to KDTree CPU")
+            chamfer_fn = chamfer_symmetric_kdtree
+    else:
+        chamfer_fn = chamfer_symmetric_kdtree
 
     max_load = args.max_load_points if args.max_load_points > 0 else 0
 

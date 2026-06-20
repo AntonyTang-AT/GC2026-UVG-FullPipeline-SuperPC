@@ -3,6 +3,10 @@
 set -euo pipefail
 
 GC2026_ROOT="/root/autodl-tmp/GC2026"
+if [[ -f "${GC2026_ROOT}/output/cwipc_env.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "${GC2026_ROOT}/output/cwipc_env.sh"
+fi
 SEQ_FILTER="${SEQ_FILTER:-TicTacToe,VictoryHeart}"
 LOG="${GC2026_ROOT}/output/wait_rgbd_val.log"
 POLL_SEC="${POLL_SEC:-300}"

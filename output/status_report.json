@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14T11:13:43.173629Z",
+  "generated_at": "2026-06-19T23:20:49.283057Z",
   "primary_track": "Full Pipeline",
   "fallback_track": "Enhancement Only",
   "checkpoints": [
@@ -49,8 +49,24 @@
       "ply_count": 2155,
       "path": "/root/autodl-tmp/GC2026/output/submission_candidate"
     },
+    "full_pipeline_candidate": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/full_pipeline_candidate"
+    },
+    "full_pipeline_val_candidate": {
+      "ply_count": 362,
+      "path": "/root/autodl-tmp/GC2026/output/full_pipeline_val_candidate"
+    },
+    "full_pipeline_val_cg": {
+      "ply_count": 362,
+      "path": "/root/autodl-tmp/GC2026/output/full_pipeline_val_cg"
+    },
+    "full_pipeline_cg": {
+      "ply_count": 2155,
+      "path": "/root/autodl-tmp/GC2026/output/full_pipeline_cg"
+    },
     "val_grid": {
-      "ply_count": 4344,
+      "ply_count": 362,
       "path": "/root/autodl-tmp/GC2026/output/val_grid"
     }
   },
@@ -118,19 +134,49 @@
       "created_at": "2026-06-13T20:31:57.362959Z"
     },
     "submission_candidate/evaluation_val_n20k.json": {
-      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs.txt",
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs_cgv2.txt",
       "enhanced_root": "/root/autodl-tmp/GC2026/output/submission_candidate",
       "num_evaluated": 362,
-      "mean_cg_cd_l1": 85.96220640319487,
-      "mean_enh_cd_l1": 75.3256582186367,
-      "mean_improvement_cd_l1": 10.636548184558166,
-      "mean_cg_accuracy_l1": 76.12411196587495,
-      "mean_enh_accuracy_l1": 86.28568592387668,
-      "mean_cg_completeness_l1": 95.80030076674994,
-      "mean_enh_completeness_l1": 64.36563043963184,
-      "mean_accuracy_l1": 86.28568592387668,
-      "mean_completeness_l1": 64.36563043963184,
-      "created_at": "2026-06-14T08:44:06.811427Z"
+      "mean_cg_cd_l1": 85.94837062844421,
+      "mean_enh_cd_l1": 71.48834211794406,
+      "mean_improvement_cd_l1": 14.460028510500152,
+      "mean_cg_accuracy_l1": 76.12174187707626,
+      "mean_enh_accuracy_l1": 77.60486579835809,
+      "mean_cg_completeness_l1": 95.77499937981217,
+      "mean_enh_completeness_l1": 65.37181843753001,
+      "mean_accuracy_l1": 77.60486579835809,
+      "mean_completeness_l1": 65.37181843753001,
+      "created_at": "2026-06-18T13:50:43.221368Z"
+    },
+    "full_pipeline_candidate/evaluation_val_n20k.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs_cgv2.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/full_pipeline_candidate",
+      "num_evaluated": 362,
+      "mean_cg_cd_l1": 85.90895866509577,
+      "mean_enh_cd_l1": 351.05693646072115,
+      "mean_improvement_cd_l1": -265.14797779562537,
+      "mean_cg_accuracy_l1": 76.12090195714417,
+      "mean_enh_accuracy_l1": 376.70217113296155,
+      "mean_cg_completeness_l1": 95.69701537304736,
+      "mean_enh_completeness_l1": 325.4117017884806,
+      "mean_accuracy_l1": 376.70217113296155,
+      "mean_completeness_l1": 325.4117017884806,
+      "created_at": "2026-06-19T20:59:34.915951Z"
+    },
+    "full_pipeline_val_candidate/evaluation_val_n20k.json": {
+      "pairs_file": "/root/autodl-tmp/GC2026/data/processed/val_pairs_cgv2.txt",
+      "enhanced_root": "/root/autodl-tmp/GC2026/output/full_pipeline_val_candidate",
+      "num_evaluated": 0,
+      "mean_cg_cd_l1": null,
+      "mean_enh_cd_l1": null,
+      "mean_improvement_cd_l1": null,
+      "mean_cg_accuracy_l1": null,
+      "mean_enh_accuracy_l1": null,
+      "mean_cg_completeness_l1": null,
+      "mean_enh_completeness_l1": null,
+      "mean_accuracy_l1": null,
+      "mean_completeness_l1": null,
+      "created_at": "2026-06-18T06:10:59.768477Z"
     },
     "val_grid/summary.json": [
       {
@@ -247,16 +293,16 @@
       "VirtualLife"
     ],
     "total_cg_frames": 2155,
-    "mapped": 0,
-    "missing_rgb": 2155,
+    "mapped": 2155,
+    "missing_rgb": 0,
     "pairs_file": "/root/autodl-tmp/GC2026/data/processed/rgbd_pairs.txt",
     "missing_file": "/root/autodl-tmp/GC2026/data/processed/rgbd_missing.txt"
   },
   "next_steps": [
-    "Complete val RGBD download: check_rgbd_download.sh",
-    "Install RGBD: post_rgbd_install.sh",
-    "Val smoke: run_full_pipeline_val.sh",
-    "Unit test mm coords: python scripts/test_rgbd_to_cg_units.py",
-    "Full RGBD download + run_full_pipeline.sh after val gate"
+    "Run integrity check: bash scripts/check_integrity.sh",
+    "Finish librealsense: bash scripts/install_cwipc.sh",
+    "Generate rgbd_pairs: bash scripts/post_rgbd_install.sh",
+    "Full Pipeline val smoke: bash scripts/run_full_pipeline_val.sh",
+    "Full Pipeline all sequences: bash scripts/run_full_pipeline.sh"
   ]
 }

@@ -3,14 +3,26 @@
 set -euo pipefail
 
 GC2026_ROOT="/root/autodl-tmp/GC2026"
+if [[ -f "${GC2026_ROOT}/output/cwipc_env.sh" ]]; then
+  # shellcheck source=/dev/null
+  source "${GC2026_ROOT}/output/cwipc_env.sh"
+fi
 source "${GC2026_ROOT}/scripts/env_setup.sh"
 
-CG_LIST="${CG_LIST:-${GC2026_ROOT}/data/processed/all_cg_only.txt}"
+if [[ -z "${CG_LIST:-}" ]]; then
+  if [[ -f "${GC2026_ROOT}/data/processed/all_cg_only_cgv2.txt" ]]; then
+    CG_LIST="${GC2026_ROOT}/data/processed/all_cg_only_cgv2.txt"
+  else
+    CG_LIST="${GC2026_ROOT}/data/processed/all_cg_only.txt"
+  fi
+fi
+export UVG_CG_VERSION="${UVG_CG_VERSION:-v2}"
 INTERMEDIATE_CG="${INTERMEDIATE_CG:-${GC2026_ROOT}/output/full_pipeline_cg}"
 OUT_DIR="${OUT_DIR:-${GC2026_ROOT}/output/full_pipeline_candidate}"
 GATE_JSON="${GC2026_ROOT}/output/val_grid/gate_decision.json"
 MAX_SAMPLES="${MAX_SAMPLES:-0}"
-PREFER_CWIPC="${PREFER_CWIPC:-0}"
+RGBD_TO_CG_BACKEND="${RGBD_TO_CG_BACKEND:-auto}"
+FRAME_MAP_MODE="${FRAME_MAP_MODE:-even}"
 
 # Enhancement stage defaults (from gate if present)
 CKPT="${CKPT:-${GC2026_ROOT}/models/superpc_pretrained/kitti360_com.pth}"
@@ -33,11 +45,13 @@ print(f'USE_VISION={c.get(\"use_vision\",0)}')
 ")"
 fi
 
-echo "[full_pipeline] Stage 1: RGBD/bag -> CG PLY -> $INTERMEDIATE_CG"
-RGBD_ARGS=()
-if [[ "$PREFER_CWIPC" == "1" ]]; then
-  RGBD_ARGS+=(--prefer-cwipc-bag)
-fi
+echo "[full_pipeline] Stage 1: RGBD/bag -> CG PLY -> $INTERMEDIATE_CG (backend=$RGBD_TO_CG_BACKEND)"
+python "${GC2026_ROOT}/scripts/uvg_frame_map.py" \
+  --cg-list "$CG_LIST" \
+  --out-json "${GC2026_ROOT}/data/processed/frame_playback_map.json" \
+  --mode "$FRAME_MAP_MODE"
+
+RGBD_ARGS=(--backend "$RGBD_TO_CG_BACKEND" --frame-map-mode "$FRAME_MAP_MODE")
 if [[ "$MAX_SAMPLES" -gt 0 ]]; then
   RGBD_ARGS+=(--max-samples "$MAX_SAMPLES")
 fi
@@ -49,6 +63,9 @@ python "${GC2026_ROOT}/scripts/rgbd_to_cg.py" \
 
 # Build cg list from reconstructed outputs
 RECON_LIST="${INTERMEDIATE_CG}/reconstructed_cg_list.txt"
+COMPARE_JSON="${GC2026_ROOT}/output/cg_recon_eval/full_compare_cgv2.json"
+RECON_ENH_CONFIG="${GC2026_ROOT}/output/enhancement_eval/recon_enh_config.json"
+
 python3 <<PY
 import os
 cg_list = "$CG_LIST"
@@ -68,6 +85,36 @@ if not paths:
     raise SystemExit("No reconstructed CG frames — check RGBD/raw download")
 PY
 
+VAL_PAIRS_CG="${GC2026_ROOT}/data/processed/val_pairs_cgv2.txt"
+if [[ ! -f "$VAL_PAIRS_CG" ]]; then
+  VAL_PAIRS_CG="${GC2026_ROOT}/data/processed/val_pairs.txt"
+fi
+if [[ -d "$INTERMEDIATE_CG" ]] && find "$INTERMEDIATE_CG" -name '*.ply' | head -1 | grep -q .; then
+  python "${GC2026_ROOT}/scripts/compare_reconstructed_cg.py" \
+    --recon-root "$INTERMEDIATE_CG" \
+    --pairs-file "$VAL_PAIRS_CG" \
+    --official-version "$UVG_CG_VERSION" \
+    --max-samples 50 \
+    --n-samples 5000 \
+    --device cpu \
+    --out-json "$COMPARE_JSON" || true
+  if [[ -f "$COMPARE_JSON" ]]; then
+    python "${GC2026_ROOT}/scripts/build_recon_enh_config.py" \
+      --compare-json "$COMPARE_JSON" \
+      --out-json "$RECON_ENH_CONFIG"
+    export ENH_PER_SEQ_CONFIG="$RECON_ENH_CONFIG"
+  fi
+fi
+
+export ENH_ADAPTIVE_BLEND="${ENH_ADAPTIVE_BLEND:-1}"
+
+if ! command -v nvidia-smi >/dev/null 2>&1; then
+  echo "[full_pipeline] No GPU (nvidia-smi missing). Stage 1 complete; skipping Stage 2/3."
+  echo "[full_pipeline] Reconstructed CG: $INTERMEDIATE_CG"
+  echo "[full_pipeline] Run Stage 2 later: bash output/gpu_pending.sh or run_full_pipeline_val.sh"
+  exit 0
+fi
+
 echo "[full_pipeline] Stage 2: SuperPC enhancement -> $OUT_DIR"
 VISION_ARGS=()
 if [[ "$USE_VISION" == "1" ]]; then
@@ -79,6 +126,7 @@ if [[ "$USE_VISION" == "1" ]]; then
 fi
 
 export CKPT OUT_DIR OUTPUT_MODE USE_VISION BLEND_VOXEL_MM NUM_POINTS TARGET_NUM_POINTS
+export ENH_ADAPTIVE_BLEND ENH_PER_SEQ_CONFIG
 export CG_LIST="$RECON_LIST"
 bash "${GC2026_ROOT}/scripts/run_dual_gpu_infer.sh"
 
@@ -98,7 +146,9 @@ python "${GC2026_ROOT}/scripts/make_submission.py" \
   --processing-track "Full Pipeline" \
   --title "UVG-CWI-DQPC GC2026 Full Pipeline SuperPC" \
   --post-processing "$GATE_JSON" \
-  --pipeline-notes "RGBD/bag -> rgbd_to_cg.py -> SuperPC blend enhancement"
+  --cg-version "$UVG_CG_VERSION" \
+  --cg-source "reconstructed" \
+  --pipeline-notes "RGBD/bag -> rgbd_to_cg (cwipc+transform) -> SuperPC blend enhancement"
 
 echo "[full_pipeline] DONE -> $OUT_DIR"
 if [[ "${RUN_POST:-0}" == "1" ]]; then

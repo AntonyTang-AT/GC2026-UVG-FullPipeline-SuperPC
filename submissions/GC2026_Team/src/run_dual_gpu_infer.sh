@@ -16,13 +16,21 @@ BLEND_VOXEL_MM="${BLEND_VOXEL_MM:-2.0}"
 USE_VISION="${USE_VISION:-0}"
 RGBD_PAIRS_FILE="${RGBD_PAIRS_FILE:-${GC2026_ROOT}/data/processed/rgbd_pairs.txt}"
 CG_LIST="${CG_LIST:-${GC2026_ROOT}/data/processed/all_cg_only.txt}"
+ENH_PER_SEQ_CONFIG="${ENH_PER_SEQ_CONFIG:-}"
+ENH_ADAPTIVE_BLEND="${ENH_ADAPTIVE_BLEND:-0}"
+
+if [[ -z "${CG_LIST:-}" || ! -s "$CG_LIST" ]]; then
+  if [[ -f "${GC2026_ROOT}/data/processed/all_cg_only_cgv2.txt" ]]; then
+    CG_LIST="${GC2026_ROOT}/data/processed/all_cg_only_cgv2.txt"
+  fi
+fi
 
 SHARD_DIR="${OUT_DIR}/.dual_gpu_shards"
 LOG_DIR="${OUT_DIR}/.dual_gpu_logs"
 
 mkdir -p "$SHARD_DIR" "$LOG_DIR"
 
-python "${SCRIPT_DIR}/split_pending_cg_list.py" \
+"$PYTHON" "${SCRIPT_DIR}/split_pending_cg_list.py" \
   --cg-list "$CG_LIST" \
   --out-dir "$OUT_DIR" \
   --shard-dir "$SHARD_DIR" \
@@ -39,6 +47,15 @@ if [[ "$USE_VISION" == "1" ]]; then
   fi
 fi
 
+PER_SEQ_ARGS=()
+if [[ -n "$ENH_PER_SEQ_CONFIG" && -f "$ENH_PER_SEQ_CONFIG" ]]; then
+  PER_SEQ_ARGS=(--per-seq-config "$ENH_PER_SEQ_CONFIG")
+fi
+ADAPTIVE_ARGS=()
+if [[ "$ENH_ADAPTIVE_BLEND" == "1" ]]; then
+  ADAPTIVE_ARGS=(--adaptive-blend)
+fi
+
 run_worker() {
   local gpu="$1"
   local list="${SHARD_DIR}/pending_${gpu}.txt"
@@ -49,7 +66,7 @@ run_worker() {
     return 0
   fi
   echo "[dual_gpu] GPU${gpu}: ${n} frames mode=${OUTPUT_MODE} vision=${USE_VISION}"
-  CUDA_VISIBLE_DEVICES="$gpu" nohup python "${SCRIPT_DIR}/run_superpc_infer.py" \
+  CUDA_VISIBLE_DEVICES="$gpu" nohup "$PYTHON" "${SCRIPT_DIR}/run_superpc_infer.py" \
     --cg-list "$list" \
     --ckpt-path "$CKPT" \
     --out-dir "$OUT_DIR" \
@@ -61,6 +78,8 @@ run_worker() {
     --skip-existing \
     --device cuda:0 \
     "${VISION_ARGS[@]}" \
+    "${PER_SEQ_ARGS[@]}" \
+    "${ADAPTIVE_ARGS[@]}" \
     > "${LOG_DIR}/gpu${gpu}.log" 2>&1 &
   echo "[dual_gpu] GPU${gpu} PID=$!"
 }

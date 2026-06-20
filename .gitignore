@@ -3,22 +3,21 @@ data/
 models/
 code/
 
-# Inference outputs
-output/**/*.ply
-output/**/*_submission.tar.gz
-output/**/infer_meta.json
-output/aria2*.log
-output/*.log
-output/post_*.log
-output/wait_*.log
-output/full_pipeline_chain*.out
-output/aria2_val_nohup.out
+# Secrets / tokens — never commit
+.env
+*.pem
+*_token*
+*.credentials
 
-# Keep small status artifacts (explicitly tracked)
+# Large local outputs (keep small reports only)
+output/
 !output/status_report.md
 !output/status_report.json
 !output/val_grid/gate_decision.json
 !output/CHALLENGE_ROOT_CAUSE_ANALYSIS.md
+
+# Submission tarballs at repo root
+submissions/*.tar.gz
 
 # Python / env
 __pycache__/

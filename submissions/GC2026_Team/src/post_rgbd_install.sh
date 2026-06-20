@@ -43,9 +43,25 @@ if ! command -v jq >/dev/null 2>&1; then
 fi
 
 cd "${GC2026_ROOT}/data/raw"
-echo "[post_rgbd_install] Official install..."
+echo "[post_rgbd_install] Official install (download + unzip)..."
 curl -sL https://ultravideo.fi/UVG-CWI-DQPC/download_UVG-CWI-DQPC.sh | \
   bash -s -- -s "$SEQ_FILTER" -t "$TYPE_FILTER" --skip-check --install
+
+# Official script skips unzip when zip already exists — extract locally.
+IFS=',' read -ra _SEQS_UNZIP <<< "$SEQ_FILTER"
+for _s in "${_SEQS_UNZIP[@]}"; do
+  _s="${_s// /}"
+  [[ -n "$_s" ]] || continue
+  _zip="${OUT_ZIP}/${_s}_UVG-CWI-DQPC_v1-0_RGBD.zip"
+  if [[ -f "$_zip" ]]; then
+    echo "[post_rgbd_install] unzip $_zip -> ${GC2026_ROOT}/data/raw/"
+    unzip -o -q "$_zip" -d "${GC2026_ROOT}/data/raw"
+    if [[ "${REMOVE_RGBD_ZIP_AFTER_EXTRACT:-0}" == "1" ]]; then
+      echo "[post_rgbd_install] remove zip $_zip (free disk)"
+      rm -f "$_zip"
+    fi
+  fi
+done
 
 IFS=',' read -ra SEQS <<< "$SEQ_FILTER"
 if [[ "$SEQ_FILTER" == "all" ]]; then

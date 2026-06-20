@@ -11,7 +11,7 @@ We participate in **both** official Processing Tracks on the same challenge.
 | Field | Value |
 |-------|-------|
 | Team | GC2026 Team |
-| Algorithm | RGBD reconstruction (Open3D / optional cwipc) + SuperPC blend enhancement |
+| Algorithm | RGBD reconstruction (cwipc + transform_matrix / Open3D fallback) + SuperPC blend |
 | Hardware | 2× NVIDIA RTX 5090 |
 | Coordinate system | Consumer-grade capture coordinates (mm) |
 

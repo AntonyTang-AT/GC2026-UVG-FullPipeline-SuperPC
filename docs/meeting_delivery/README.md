@@ -1,6 +1,8 @@
 # 学长交付物（2026-06-29）
 
-> **在 GitHub 上阅读**：本目录为仓库内正式路径（本地运行 `prepare_meeting_delivery.sh` 会同步镜像到 `output/meeting_delivery/`）。
+> **路径说明**  
+> - **GitHub / 仓库正式路径**：`docs/meeting_delivery/`  
+> - **本地运行镜像**：`output/meeting_delivery/`（由 `prepare_meeting_delivery.sh` 自动同步，不入库）
 
 ## 推荐阅读顺序
 

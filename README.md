@@ -1,4 +1,4 @@
-# GC2026-UVG-FullPipeline-SuperPC
+# DQPC-GC2026-PointPower
 
 UVG Grand Challenge 2026 — **赛道一（UVG-CWI-DQPC）**  
 双线 Processing Track：**Full Pipeline**（研发）+ **Enhancement Only**（**竞技提交**）
